@@ -1,0 +1,282 @@
+﻿@model CharitiesViewModel
+
+@{
+    ViewData["Title"] = "CharityDetails";
+    Layout = "~/Views/Shared/_LayoutCommon.cshtml";
+    var apiUrl = Context.Session.GetString("_ApiUrl");
+    var apiKey = Context.Session.GetString("_XApiKey");
+    var userId = Context.Session.GetString("_UserId");
+    var totalIncome = "0";
+    var spendings = "0";
+
+    if (Model.TotalIncome != null)
+    {
+        totalIncome = Model.TotalIncome.Value.ToString("N0");
+    }
+    if (Model.Spendings != null)
+    {
+        spendings = Model.Spendings.Value.ToString("N0");
+    }
+}
+
+<div class="row">
+    <div class="col-md-2 ftco-animate">
+        <button class="btn btn-info btn-sm" style="border-radius: 6px; background-color: #353a40; border-color: #353a40" onclick="history.back()">Go Back</button>
+    </div>
+    <div class="col-md-7 ftco-animate">
+        <h4><u style="font-weight:bold;background-color: #f7ca44;padding: 3px;border-radius: 6px;">@Model.Name - Profile</u></h4>
+    </div>
+    <div class="col-md-3 ftco-animate">
+        @if (Model.Vetted)
+        {
+            <span style="background-color: green;padding: 6px;" class="button-radius"><a href="@Url.Action("CharityVettingCriteria","Home")?charityId=@Model.Id" style="color:white">Vetted</a></span>
+        }
+        else
+        {
+            <span style="background-color: red;padding: 6px;" class="button-radius"><a href="#" style="color:white">Not Vetted</a></span>
+        }
+
+        @if (Model.DonationLink == null)
+        {
+            <span style="background-color: deepskyblue;padding: 6px;" class="button-radius"><a style="color:white; cursor:pointer" onclick="Donate('@Model.Id','@Model.Name')">Donate</a></span>
+        }
+        else
+        {
+            <span style="background-color: deepskyblue;padding: 6px;" class="button-radius"><a href="@Model.DonationLink" target="_blank" style="color:white; cursor:pointer">Donate</a></span>
+        }
+
+        @if (Model.IsFavorite)
+        {
+            <span style="background-color: gray;padding: 6px;" class="button-radius"><i class="bi bi-heart-fill" id="icon_@Model.Id" onclick="AddToFavorites('@Model.Id')" style="font-size:22px; color:#f7ca44; cursor:pointer"></i></span>
+        }
+        else
+        {
+            <span style="background-color: gray;padding: 6px;" class="button-radius"><i class="bi bi-heart" id="icon_@Model.Id" onclick="AddToFavorites('@Model.Id')" style="font-size:22px; color:#f7ca44; cursor:pointer"></i></span>
+        }
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-2 ftco-animate"></div>
+    <div class="col-md-9 ftco-animate">
+        <br />
+        <span style="color:black; font-weight:bold;background-color: #f7ca44;padding: 3px;border-radius: 6px;">Mission</span>
+        <br />
+        <p>@Model.Description</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-2 ftco-animate"></div>
+    <div class="col-md-9 ftco-animate">
+        <span style="color:black; font-weight:bold;background-color: #f7ca44;padding: 3px;border-radius: 6px;">Financials</span>
+        <br />
+        <ul style="color:black">
+            <li><b style="font-weight:bold">Total income </b>£@totalIncome</li>
+            <li><b style="font-weight:bold">Spending on charitable activities </b>£@spendings</li>
+        </ul>
+        <p><b style="color:red; font-weight:bold">@Model.Efficiency%</b> @Model.Name's total income is spent on Charitable activities, making it one of the more efficient charities.</p>
+        <p>@Model.Financials</p>
+        <span style="color:black; font-weight:bold;background-color: #f7ca44;padding: 3px;border-radius: 6px;">Annual Report Link</span><br />
+        <a style="color:blue" href="@Model.AnnualReportLink" target="_blank">@Model.AnnualReportLink</a>
+    </div>
+</div>
+
+@if (Model.Impacts.Count > 0)
+{
+    <div class="row">
+        <div class="col-md-2 ftco-animate"></div>
+        <div class="col-md-9 ftco-animate">
+            <span style="color:black; font-weight:bold;background-color: #f7ca44;padding: 3px;border-radius: 6px;">Impacts</span>
+            <br />
+            <ul>
+                @foreach (var item in Model.Impacts)
+                {
+                    <li>@item.Description</li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-2 ftco-animate"></div>
+    <div class="col-md-9 ftco-animate">
+        <span style="color:black; font-weight:bold;background-color: #f7ca44;padding: 3px;border-radius: 6px;">Leadership Description</span>
+        <p>@Model.Leadership</p>
+        <p>@Model.LeadershipDescription</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-2 ftco-animate"></div>
+    <div class="col-md-9 ftco-animate">
+        <p><span style="color:black; font-weight:bold;background-color: #f7ca44;padding: 3px;border-radius: 6px;">Website </span>&nbsp;<a style="color:blue" href="@Model.Website" target="_blank">@Model.Website</a></p>
+        <p><span style="color:black; font-weight:bold;background-color: #f7ca44;padding: 3px;border-radius: 6px;">Phone </span>&nbsp;@Model.PhoneNumber &nbsp;<span style="color:black; font-weight:bold;background-color: #f7ca44;padding: 3px;border-radius: 6px;"> Email: </span>&nbsp;@Model.Mail</p>
+    </div>
+</div>
+
+
+<input type="hidden" id="hdnCharityId" />
+<!-- The Modal -->
+<div class="modal" id="myModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h4 class="modal-title">Donate Your Contribution</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <!-- Modal body -->
+            <div class="modal-body">
+                <div class="row">
+                    <label class="col-md-2 col-form-label">Title</label>
+                    <div class="col-md-10">
+                        <label id="lblTitle"></label>
+                    </div>
+                </div>
+                <div class="row">
+                    <label class="col-md-2 col-form-label"></label>
+                    <div class="col-md-10">
+                        <nav>
+                            <ul class="pagination pagination">
+                                <li class="page-item" onclick="SuggestedAmount(5)"><a class="page-link">£5</a></li>
+                                <li class="page-item" onclick="SuggestedAmount(10)"><a class="page-link">£10</a></li>
+                                <li class="page-item" onclick="SuggestedAmount(15)"><a class="page-link">£15</a></li>
+                                <li class="page-item" onclick="SuggestedAmount(20)"><a class="page-link">£20</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="lblAmount" class="col-md-2 col-form-label">Amount</label>
+                    <div class="col-md-6">
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">£</div>
+                            </div>
+                            <input type="number" id="txtAmount" min="1" style="height:39px !important" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2 col-form-label"></div>
+                    <div class="col-md-10">
+                        <button id="btnSave" type="button" class="btn btn-success button-radius">Save</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger button-radius" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        var apiKey = '@apiKey';
+        $.ajaxSetup({
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("XApiKey", apiKey);
+            }
+        });
+
+        $("#btnSave").click(function () {
+
+            var userId = '@userId';
+            var charityId = $("#hdnCharityId").val();
+            var amount = $("#txtAmount").val();
+
+            if (amount == '') {
+                toastr.error('Please enter an amount');
+            }
+            else if (userId == '') {
+                toastr.error('Please Sign In to donate');
+            }
+            else {
+
+                var apiUrl = '@apiUrl';
+                var donationRequest = {
+                    UserId: userId,
+                    CharityId: charityId,
+                    Amount: amount
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: "" + apiUrl + "api/Charity/Donation",
+                    data: JSON.stringify(donationRequest),
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (data, textStatus, xhr) {
+                        if (xhr.status == 200) {
+                            toastr.success(data.message);
+                            $('#myModal').modal('toggle');
+                        }
+                    },
+                    complete: function (xhr, textStatus) {
+
+                    }
+                });
+            }
+        });
+    });
+
+    function Donate(id, name) {
+        $('#myModal').modal('show');
+        $('#lblTitle').html(name);
+        $('#hdnCharityId').val(id);
+        $("#txtAmount").val("");
+    }
+
+    function SuggestedAmount(amount) {
+        $("#txtAmount").val(amount);
+    }
+
+    function AddToFavorites(id) {
+
+        var userId = '@userId';
+        var charityId = id;
+        var apiKey = '@apiKey';
+
+        if (userId == '') {
+            toastr.error('Please Sign In to add favorites');
+        }
+        else {
+
+            var apiUrl = '@apiUrl';
+            var addToFavoritesRequest = {
+                UserId: userId,
+                CharityId: charityId
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "" + apiUrl + "api/Charity/AddToFavorites",
+                data: JSON.stringify(addToFavoritesRequest),
+                dataType: "json",
+                contentType: "application/json",
+                success: function (data, textStatus, xhr) {
+                    if (xhr.status == 200) {
+
+                        toastr.success(data.message);
+                        if (data.message == 'Successfully added in favorites') {
+                            $("#icon_" + id + "").removeClass('bi-heart');
+                            $("#icon_" + id + "").addClass('bi-heart-fill');
+                        }
+                        else {
+                            $("#icon_" + id + "").removeClass('bi-heart-fill');
+                            $("#icon_" + id + "").addClass('bi-heart');
+                        }
+                    }
+                },
+                complete: function (xhr, textStatus) {
+
+                }
+            });
+        }
+    }
+</script>

@@ -1,0 +1,92 @@
+﻿@{
+    ViewData["Title"] = "Donation History";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+    var apiUrl = Context.Session.GetString("_ApiUrl");
+    var userId = Context.Session.GetString("_UserId");
+    var xApiKey = Context.Session.GetString("_XApiKey");
+}
+
+@*<script id="share-template" type="text/x-kendo-template">
+    <a style="font-size:14px; text-decoration: none;" onclick="Share(#= donationId #)" class="btn btn-sm btn-warning share">Share</a>
+</script>*@
+<script id="website-template" type="text/x-kendo-template">
+    <a class="website" target="_blank" style="color:blue;" href="#= website #">#= charityName #</a>
+</script>
+<script id="amount-template" type="text/x-kendo-template">
+    £<span>#= amount #</span>
+</script>
+<div id="grid" style="height: 550px;padding-left: 0;padding-right: 0;"></div>
+
+<script>
+    $(document).ready(function () {
+
+        var apiUrl = '@apiUrl';
+        var userId = '@userId';
+        var apiKey = '@xApiKey';
+
+        $.ajaxSetup({
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("XApiKey", apiKey);
+            }
+        });
+
+        $("#grid").kendoGrid({
+            dataSource: {
+                transport: {
+                    read: "" + apiUrl + "api/Charity/DonationHistory?userId=" + userId + ""
+                },
+                schema: {
+                    model: {
+                        id: "donationId",
+                        fields: {
+                            donationId: { editable: false, nullable: true },
+                            charityName: { type: "string" },
+                            website: { type: "string" },
+                            amount: { type: "number" },
+                            donationDate: { type: "date" }
+                        }
+                    }
+                },
+                pageSize: 20,
+            },
+            height: 550,
+            filterable: true,
+            sortable: true,
+            pageable: true,
+            columns: [
+                //{
+                //    field: "donationId",
+                //    title: "Donation ID",
+                //    id: "donationId",
+                //    filterable: false
+                //},
+                {
+                    field: "Charity",
+                    template: kendo.template($("#website-template").html()),
+                    filterable: false,
+
+                },
+                {
+                    field: "Amount",
+                    template: kendo.template($("#amount-template").html()),
+                    filterable: false
+                },
+                {
+                    field: "donationDate",
+                    title: "Donation Date",
+                    format: "{0:MM/dd/yyyy H:mm}",
+                    filterable: false
+                }
+                //,
+                //{
+                //    title: "&nbsp", width: "80px",
+                //    template: kendo.template($("#share-template").html())
+                //}
+            ]
+        });
+    });
+
+    function Share(donationId) {
+        alert(donationId);
+    }
+</script>

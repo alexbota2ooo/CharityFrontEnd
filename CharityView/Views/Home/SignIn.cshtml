@@ -1,0 +1,137 @@
+﻿@{
+    ViewData["Title"] = "SignIn";
+    Layout = null;
+    var apiUrl = Context.Session.GetString("_ApiUrl");
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>@ViewData["Title"]</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link href="https://fonts.googleapis.com/css?family=Dosis:200,300,400,500,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Overpass:300,400,400i,600,700" rel="stylesheet">
+
+    <link rel="stylesheet" href="~/css/open-iconic-bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/animate.css">
+
+    <link rel="stylesheet" href="~/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="~/css/owl.theme.default.min.css">
+    <link rel="stylesheet" href="~/css/magnific-popup.css">
+
+    <link rel="stylesheet" href="~/css/aos.css">
+
+    <link rel="stylesheet" href="~/css/ionicons.min.css">
+
+    <link rel="stylesheet" href="~/css/bootstrap-datepicker.css">
+    <link rel="stylesheet" href="~/css/jquery.timepicker.css">
+
+
+    <link rel="stylesheet" href="~/css/flaticon.css">
+    <link rel="stylesheet" href="~/css/icomoon.css">
+    <link rel="stylesheet" href="~/css/style.css">
+</head>
+<body>
+
+    <div class="container-xxl position-relative bg-white d-flex p-0">
+        <!-- Sign In Start -->
+        <div class="container-fluid">
+            <div class="row h-100 align-items-center justify-content-center" style="min-height: 100vh;">
+                <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-4">
+                    <div class="rounded p-4 p-sm-5 my-4 mx-3" style="background: #efefef !important">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control text-radius" id="email" placeholder="Email address">
+                        </div>
+                        <div class="form-floating mb-4">
+                            <input type="password" class="form-control text-radius" id="password" placeholder="Password">
+                        </div>
+                        <button type="button" id="btnSignIn" class="btn btn-primary py-3 w-100 mb-4 button-radius">Sign In</button>
+                        <p class="text-center mb-0">Don't have an Account? <a href="@Url.Action("SignUp", "Home")">Sign Up</a></p>
+                        <div style="text-align:center"> <a style="color:#f7ca44; cursor:pointer;" onclick="history.back()">Go Back</a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Sign In End -->
+    </div>
+
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/jquery-migrate-3.0.1.min.js"></script>
+    <script src="~/js/popper.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.easing.1.3.js"></script>
+    <script src="~/js/jquery.waypoints.min.js"></script>
+    <script src="~/js/jquery.stellar.min.js"></script>
+    <script src="~/js/owl.carousel.min.js"></script>
+    <script src="~/js/jquery.magnific-popup.min.js"></script>
+    <script src="~/js/aos.js"></script>
+    <script src="~/js/jquery.animateNumber.min.js"></script>
+    <script src="~/js/bootstrap-datepicker.js"></script>
+    <script src="~/js/jquery.timepicker.min.js"></script>
+    <script src="~/js/scrollax.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
+    <script src="~/js/google-map.js"></script>
+    <script src="~/js/main.js"></script>
+    <script src="~/js/blockui.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $(document).ajaxStart($.blockUI).ajaxStop($.unblockUI);
+
+            $("#btnSignIn").click(function () {
+
+                var email = $("#email").val();
+                var password = $("#password").val();
+
+                if (email == '') {
+                    toastr.info('Please enter email address');
+                }
+                else if (password == '') {
+                    toastr.info('Please enter password');
+                }
+                else {
+                    var oUser = {
+                        Email: email,
+                        Password: password
+                    };
+
+                    var apiUrl = '@apiUrl';
+                    if (apiUrl == '') {
+                        setTimeout(function () {
+                            var url = '@Url.Action("Index", "Home")';
+                            window.location.href = url;
+                        }, 1000);
+                    }
+
+                    $.ajax({
+                        type: "POST",
+                        url: "" + apiUrl + "api/SignIn/UserSignIn",
+                        data: JSON.stringify(oUser),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (data, textStatus, xhr) {
+                            if (xhr.status == 200) {
+                                toastr.success('Sign in successful');
+                                setTimeout(function () {
+                                    var url = '@Url.Action("RedrictToPanel", "Home")?name=' + data.payload.name + '&userId=' + data.payload.id;
+                                    window.location.href = url;
+                                }, 1000);
+                            }
+                        },
+                        complete: function (xhr, textStatus) {
+                            if (xhr.status == 404) {
+                                toastr.error('Invalid email or password');
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

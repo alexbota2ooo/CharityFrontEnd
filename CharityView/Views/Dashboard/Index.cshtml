@@ -1,0 +1,74 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+    var apiUrl = Context.Session.GetString("_ApiUrl");
+    var userId = Context.Session.GetString("_UserId");
+    var xApiKey = Context.Session.GetString("_XApiKey");
+}
+
+
+<div style="text-align:center"><h1>Welcome !</h1></div>
+
+<!-- Sale & Revenue Start -->
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-sm-6 col-xl-3">
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
+                <i class="fa fa-chart-line fa-3x text-primary"></i>
+                <div class="ms-3">
+                    <p class="mb-2"><a href="@Url.Action("DonationHistory","Dashboard")">Total Donations</a></p>
+                    <h6 class="mb-0" id="totalDonations"></h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
+                <i class="fa fa-chart-bar fa-3x text-primary"></i>
+                <div class="ms-3">
+                    <p class="mb-2"><a href="@Url.Action("FavoriteCharities","Dashboard")">Favorite Charity</a></p>
+                    <h6 class="mb-0" id="favoriteCharity"></h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Sale & Revenue End -->
+
+<script>
+    $(document).ready(function () {
+
+        var apiUrl = '@apiUrl';
+        var userId = '@userId';
+        var apiKey = '@xApiKey';
+
+        $.ajaxSetup({
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("XApiKey", apiKey);
+            }
+        });
+
+        $.ajax({
+            type: "GET",
+            url: "" + apiUrl + "api/Charity/DashboardDetails?userId=" + userId,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (data, textStatus, xhr) {
+                if (xhr.status == 200) {
+
+                    if (data.payload != null) {
+                        $("#totalDonations").html("£" + data.payload.totalDonations);
+                        $("#favoriteCharity").html(data.payload.favoriteCharityCount);
+                    } else {
+                        $("#totalDonations").html('£0');
+                        $("#favoriteCharity").html('0');
+                    }
+                }
+            },
+            complete: function (xhr, textStatus) {
+
+            }
+        });
+    });
+</script>

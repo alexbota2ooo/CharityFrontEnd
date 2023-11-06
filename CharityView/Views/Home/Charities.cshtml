@@ -1,0 +1,120 @@
+﻿@{
+    ViewData["Title"] = "Charities";
+    Layout = "~/Views/Shared/_LayoutCommon.cshtml";
+    var apiUrl = Context.Session.GetString("_ApiUrl");
+    var xApiKey = Context.Session.GetString("_XApiKey");
+    var userId = Context.Session.GetString("_UserId");
+}
+
+<div class="row">
+    <div class="col-md-4 ftco-animate">
+        <input id="ddlCauseId" name="ddlCauseId" placeholder="--- Select Cause ---" style="height:38px" />
+    </div>
+    <div class="col-md-4 ftco-animate">
+        <input id="ddlLeadership" name="ddlLeadership" placeholder="--- Select Leadership ---" style="height:38px" />
+    </div>
+    <div class="col-md-4 ftco-animate">
+        <button type="button" id="btnFilter" class="btn btn-primary w-100 button-radius">Filter</button>
+    </div>
+</div>
+
+<div class="row">&nbsp;</div>
+
+<div id="loadCharities">
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        
+        var apiUrl = '@apiUrl';
+        var apiKey = '@xApiKey';
+
+        if (apiUrl == '') {
+            setTimeout(function () {
+                var url = '@Url.Action("Index", "Home")';
+                window.location.href = url;
+            }, 100);
+        }
+
+        $.ajaxSetup({
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("XApiKey", apiKey);
+            }
+        });
+
+        $("#ddlCauseId").kendoComboBox({
+            autoBind: false,
+            dataTextField: "name",
+            dataValueField: "id",
+            dataSource: {
+                type: "json",
+                transport: {
+                    read: {
+                        url: apiUrl + "api/Cause/GetAllCauses?count=0"
+                    }
+                }
+            }
+        });
+
+        $("#ddlLeadership").kendoComboBox({
+            autoBind: false,
+            dataTextField: "leadership",
+            dataValueField: "leadership",
+            dataSource: {
+                type: "json",
+                transport: {
+                    read: {
+                        url: apiUrl + "api/Charity/GetAllLeadership"
+                    }
+                }
+            }
+        });
+
+        $("#btnFilter").click(function () {
+
+            myFunction();
+        });
+
+        var params = new window.URLSearchParams(window.location.search);
+        var causeId = params.get('causeId');
+        $("#ddlCauseId").data("kendoComboBox").value(causeId);
+
+        myFunction();
+    });
+
+    function myFunction() {
+        var causeId = $("#ddlCauseId").val();
+        var leadership = $("#ddlLeadership").val();
+        var userId = '@userId';
+
+        if (causeId == '') {
+            toastr.warning('Please select cause');
+        }
+        else {
+            var requestObj = {
+                CauseId: causeId,
+                Leadership: leadership,
+                UserId: userId
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "/Home/CharitiesFilter",
+                data: requestObj,
+                success: function (response) {
+                    $("#loadCharities").html(response)
+                    if ($("#dynamicRow").html().trim() == '') {
+                        toastr.warning('No data found');
+                    }
+                }
+            });
+        }
+    }
+</script>
+
+<style type="text/css">
+    .k-list-item.k-selected, .k-selected.k-list-optionlabel {
+        color: #ffffff;
+        background-color: #ffe9aa;
+    }
+</style>

@@ -1,0 +1,34 @@
+﻿@model List<VettingCriteriaViewModel>
+
+@{
+    ViewData["Title"] = "CharityDetails";
+    Layout = "~/Views/Shared/_LayoutCommon.cshtml";
+    var apiUrl = Context.Session.GetString("_ApiUrl");
+    var xApiKey = Context.Session.GetString("_XApiKey");
+}
+
+<div class="row">
+    <div class="col-md-2 ftco-animate">
+        <button class="btn btn-info btn-sm" style="border-radius: 6px; background-color: #353a40; border-color: #353a40" onclick="history.back()">Go Back</button>
+    </div>
+    <div class="col-md-9 ftco-animate">
+        <h4><u style="font-weight:bold;background-color: #f7ca44;padding: 3px;border-radius: 6px;">Vetting Details</u></h4>
+    </div>
+</div>
+
+@foreach (var item in Model)
+{
+    <div class="row">
+        <div class="col-md-2 ftco-animate"></div>
+        <div class="col-md-9 ftco-animate">
+            <span style="color:black; font-weight:bold">@item.Name</span>
+            <ul>
+                @foreach (var itemVd in item.VettingDetailsResponse)
+                {
+                    <li>@itemVd.Name</li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+

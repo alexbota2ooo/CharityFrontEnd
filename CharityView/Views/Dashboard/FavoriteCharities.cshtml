@@ -1,0 +1,74 @@
+﻿@{
+    ViewData["Title"] = "Favorite Charities";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+    var apiUrl = Context.Session.GetString("_ApiUrl");
+    var userId = Context.Session.GetString("_UserId");
+    var xApiKey = Context.Session.GetString("_XApiKey");
+}
+
+<!-- Sale & Revenue Start -->
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4" id="favoriteDiv">
+    </div>
+</div>
+<!-- Sale & Revenue End -->
+
+<script>
+    $(document).ready(function () {
+
+        var apiUrl = '@apiUrl';
+        var userId = '@userId';
+        var apiKey = '@xApiKey';
+
+        $.ajaxSetup({
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("XApiKey", apiKey);
+            }
+        });
+
+        $.ajax({
+            type: "GET",
+            url: "" + apiUrl + "api/Charity/FavoriteCharities?userId=" + userId,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (data, textStatus, xhr) {
+                if (xhr.status == 200) {
+
+                    var dynamicHtml = '';
+                    if (data.payload.length == 0) {
+                        dynamicHtml += '<h3>No favorite charities in your list</h3>'
+                    } else {
+                        $.each(data.payload, function (key, val) {
+
+                            var totalIncome = 0;
+                            var spendings = 0;
+
+                            if (val.totalIncome != null) {
+                                totalIncome = parseInt(val.totalIncome);
+                            }
+                            if (val.spendings != null) {
+                                spendings = parseInt(val.spendings);
+                            }
+
+                            dynamicHtml += '<div class="col-sm-6 col-xl-4">'
+                            dynamicHtml += '<div class="bg-light rounded d-flex align-items-center justify-content-between p-4">'
+                            dynamicHtml += '<div class="ms-3">'
+                            dynamicHtml += '<p class="mb-2"><a href="@Url.Action("CharityDetails","Home")?charityId=' + val.id + '&userId=@userId"><b>' + val.name + '</b></a></p>'
+                            dynamicHtml += '<h6 class="mb-0">Cause: ' + val.causeName + '</h6>'
+                            dynamicHtml += '<h6 class="mb-0">Efficiency: ' + val.efficiency + '%</h6>'
+                            dynamicHtml += '</div>'
+                            dynamicHtml += '</div>'
+                            dynamicHtml += '</div>'
+                        });
+
+                    }
+
+                    $("#favoriteDiv").html(dynamicHtml);
+                }
+            },
+            complete: function (xhr, textStatus) {
+
+            }
+        });
+    });
+</script>
